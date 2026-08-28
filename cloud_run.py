@@ -66,8 +66,21 @@ def main() -> int:
     print("=" * 60)
 
     with sync_playwright() as p:
-        navegador = p.chromium.launch(headless=True)
-        contexto = navegador.new_context()
+        navegador = p.chromium.launch(headless=True, args=["--no-sandbox"])
+        contexto = navegador.new_context(
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            ),
+            locale="es-PE",
+            ignore_https_errors=True,
+        )
+        contexto.add_init_script(
+            "Object.defineProperty(navigator,'webdriver',{get:()=>undefined});"
+            "window.chrome={runtime:{}};"
+            "Object.defineProperty(navigator,'languages',{get:()=>['es-PE','es','en-US']});"
+            "Object.defineProperty(navigator,'plugins',{get:()=>[1,2,3]});"
+        )
         page = contexto.new_page()
         try:
             print("[1] Login"); iniciar_sesion(page)

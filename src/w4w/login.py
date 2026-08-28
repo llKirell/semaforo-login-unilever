@@ -16,7 +16,7 @@ from playwright.sync_api import Page
 from config import settings
 
 
-def _primer_selector(page: Page, selectores: list[str], descripcion: str, timeout: int = 4000) -> str:
+def _primer_selector(page: Page, selectores: list[str], descripcion: str, timeout: int = 8000) -> str:
     """Devuelve el primer selector que aparezca visible; error claro si ninguno."""
     for sel in selectores:
         try:
@@ -31,7 +31,27 @@ def iniciar_sesion(page: Page) -> None:
     """Abre AppDinet y autentica. Deja la sesion (cookies) lista para la API."""
     print("  [P-002] Abriendo AppDinet:", settings.URL_LOGIN)
     page.goto(settings.URL_LOGIN, wait_until="domcontentloaded")
+    try:
+        page.wait_for_load_state("networkidle", timeout=20000)
+    except Exception:
+        pass
+    # Esperamos a que aparezca CUALQUIER input (el formulario carga por JS).
+    try:
+        page.wait_for_selector("input", timeout=20000)
+    except Exception:
+        pass
     page.wait_for_timeout(1500)
+
+    # Diagnostico: que inputs y que pantalla vemos (util si falla en la nube).
+    try:
+        inputs = page.evaluate(
+            "() => Array.from(document.querySelectorAll('input')).slice(0,15)"
+            ".map(e => ({id:e.id, name:e.name, type:e.type, ph:e.placeholder}))"
+        )
+        print("  [P-002] Titulo:", page.title(), "| URL:", page.url)
+        print("  [P-002] Inputs detectados:", inputs)
+    except Exception:
+        pass
 
     user_sel = _primer_selector(
         page,
