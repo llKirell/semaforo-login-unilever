@@ -1,0 +1,5 @@
+# Dependencias minimas de la Fase 1
+# Sin version fija: en Python 3.14 necesitamos wheels recientes (playwright
+# >=1.55 trae greenlet con soporte 3.14 y evita compilar desde codigo fuente).
+playwright>=1.55
+python-dotenv>=1.0

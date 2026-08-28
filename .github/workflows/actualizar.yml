@@ -1,0 +1,55 @@
+name: Actualizar Semaforo
+
+on:
+  schedule:
+    - cron: "0 */2 * * *"   # cada 2 horas (hora UTC)
+  workflow_dispatch:          # permite ejecutarlo a mano desde GitHub
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      TZ: America/Lima          # para que la hora "Actualizado" salga en hora Peru
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Instalar navegador Playwright
+        run: python -m playwright install --with-deps chromium
+
+      - name: Generar dashboard (login W4W + saldo)
+        env:
+          DINET_USER: ${{ secrets.DINET_USER }}
+          DINET_PASS: ${{ secrets.DINET_PASS }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python cloud_run.py
+
+      - name: Preparar artefacto de Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Desplegar a GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

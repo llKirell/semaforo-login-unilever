@@ -1,0 +1,43 @@
+# Secretos: NUNCA versionar credenciales
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Playwright / navegador
+.playwright/
+
+# Base de datos e historico (contiene data operativa)
+data/
+*.db
+
+# Detalle de pendientes generado
+pendientes_login.json
+
+# Dashboard y HTML generados
+*.html
+public/
+
+# Logs de auto-arranque
+temp/
+
+# Descargas y logs (fases posteriores)
+downloads/
+logs/
+*.log
+
+# Artefactos de diagnostico / capturas (pueden contener data operativa)
+descubrimiento_saldo.json
+saldo_respuesta.json
+validacion_fase1.png
+*.png
+
+# Sistema operativo / editores
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
