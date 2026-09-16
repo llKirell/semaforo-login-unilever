@@ -37,7 +37,8 @@ es la de la nube (sin BD, snapshot puro). El dashboard NO necesita BD.
 - **LOGIN es la UBICACION**, no un estado: `CodigoUbicacion` que contiene/empieza
   con las de la lista. Familias: `LOGIN`, `LOGIN.RC.NN`, `LOGI.RECEP`, `LOGI.ALMACEN`.
 - Campos usados: `CodigoUbicacion`, `CodigoArticulo`, `DescripcionArticulo`,
-  `LoteProveedor`, `CantidadFinalUMS` (cajas), `FechaUltimoMovimiento`.
+  `LoteProveedor`, `CantidadFinalUMS` (cajas), `FechaUltimoMovimiento`,
+  `UsuarioCreacion` (columna Usuario; `UsuarioModificacion` como respaldo).
 - **Fechas** vienen como `/Date(ms_epoch_UTC)/`. Lima = UTC-5. Ver
   `parse_fecha_dinet` en src/processor/login.py. `FechaUltimoMovimiento` está
   presente ~100%; `FechaModificacion` suele venir vacía (no usar).
@@ -51,9 +52,11 @@ es la de la nube (sin BD, snapshot puro). El dashboard NO necesita BD.
 - Semáforo (`clasificar_semaforo` en src/processor/login.py): 0-2 días=VERDE,
   3=AMARILLO, 4+=ROJO, sin fecha=OBSERVACION.
 - Dashboard: 3 tarjetas (ROJO/AMARILLO/VERDE) con cajas+líneas+día más antiguo de
-  cada color; tabla por línea/lote con filtro por ubicación, buscador, orden y
-  paginación con filas "Auto" (se ajustan a la altura de pantalla); botón
-  Descargar Excel (data cruda completa, .xlsx embebido en base64).
+  cada color; tabla por línea/lote (columnas: Ubicación, Cód. Artículo,
+  Artículo, Lote, Usuario, Cantidad, Fecha Últ. Mov., Días) con filtro por
+  ubicación, buscador, orden y paginación con filas "Auto" (se ajustan a la
+  altura de pantalla); botón Descargar Excel que exporta SOLO esas columnas
+  mostradas (las líneas), no la data cruda (.xlsx embebido en base64).
 
 ## GOTCHAS críticos (no re-tropezar)
 

@@ -137,6 +137,12 @@ def agrupar_por_lote(filas_login: list[dict], ahora: datetime | None = None) -> 
     Suma las cajas (CantidadFinalUMS) y toma la fecha MAS ANTIGUA de cada grupo.
     """
     ahora = ahora or datetime.now(tz=_TZ_LIMA)
+
+    def _usuario(fila: dict) -> str:
+        # UsuarioCreacion (quien lo puso) suele estar; UsuarioModificacion como respaldo.
+        return (str(fila.get("UsuarioCreacion") or "").strip()
+                or str(fila.get("UsuarioModificacion") or "").strip())
+
     grupos: dict[tuple, dict] = {}
     for f in filas_login:
         key = (f.get("CodigoUbicacion"), f.get("CodigoArticulo"), f.get("LoteProveedor"))
@@ -149,11 +155,13 @@ def agrupar_por_lote(filas_login: list[dict], ahora: datetime | None = None) -> 
                 "lote": f.get("LoteProveedor"),
                 "cajas": 0,
                 "fecha": None,
+                "usuario": _usuario(f),   # respaldo si no hay fecha; se pisa con el de la fila mas antigua
             }
         g["cajas"] += (f.get("CantidadFinalUMS") or 0)
         dt = parse_fecha_dinet(f.get("FechaUltimoMovimiento"))
         if dt and (g["fecha"] is None or dt < g["fecha"]):
             g["fecha"] = dt
+            g["usuario"] = _usuario(f)   # usuario de la fila mas antigua
 
     lineas = []
     for g in grupos.values():
@@ -167,6 +175,7 @@ def agrupar_por_lote(filas_login: list[dict], ahora: datetime | None = None) -> 
                 "cod_articulo": g["cod_articulo"],
                 "articulo": g["articulo"],
                 "lote": g["lote"],
+                "usuario": g["usuario"],
                 "cajas": g["cajas"],
                 "fecha_mas_antigua": g["fecha"].strftime("%d/%m/%Y") if g["fecha"] else None,
                 "antiguedad_dias": dias,

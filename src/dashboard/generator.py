@@ -28,22 +28,30 @@ _COLOR = {"ROJO": "#e23b3b", "AMARILLO": "#e0a800", "VERDE": "#2ca02c", "OBSERVA
 _KPI_BG = {"cjs": "#2aa9e0", "lineas": "#6aa84f", "rojo": "#c0398f", "antiguo": "#16a2a2"}
 
 
-def _excel_datauri(filas_crudas: list[dict]) -> tuple[str, int]:
-    """Construye el .xlsx con TODAS las columnas/filas crudas. Devuelve (dataURI, n_columnas)."""
-    if not filas_crudas:
+def _excel_datauri(lineas: list[dict]) -> tuple[str, int]:
+    """Construye el .xlsx con SOLO las columnas que se muestran en el dashboard
+    (por linea/lote). Devuelve (dataURI, n_filas)."""
+    if not lineas:
         return "", 0
-    headers = list(filas_crudas[0].keys())
+    headers = ["Ubicacion", "Cod. Articulo", "Articulo", "Lote Proveedor",
+               "Usuario", "Cantidad (cajas)", "Fecha Ult. Mov.", "Dias", "Semaforo"]
     filas = []
-    for r in filas_crudas:
-        fila = []
-        for h in headers:
-            v = r.get(h)
-            fila.append(convertir_fecha_dinet(v) if isinstance(v, str) else ("" if v is None else v))
-        filas.append(fila)
-    xlsx = build_xlsx(headers, filas, hoja="SaldoLOGIN")
+    for l in lineas:
+        filas.append([
+            l["ubicacion"],
+            l["cod_articulo"] or "",
+            l["articulo"] or "",
+            l["lote"] or "",
+            l.get("usuario") or "",
+            l["cajas"],
+            l["fecha_mas_antigua"] or "",
+            l["antiguedad_dias"] if l["antiguedad_dias"] is not None else "",
+            l["estado_semaforo"],
+        ])
+    xlsx = build_xlsx(headers, filas, hoja="LOGIN")
     b64 = base64.b64encode(xlsx).decode("ascii")
     uri = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + b64
-    return uri, len(headers)
+    return uri, len(filas)
 
 
 def _card_semaforo(estado, emoji, bg, texto, lineas):
@@ -100,7 +108,8 @@ def generar_dashboard(salida: Path) -> Path:
     for i, l in enumerate(lineas):
         color = _COLOR.get(l["estado_semaforo"], "#9aa0a6")
         dias_txt = "-" if l["antiguedad_dias"] is None else f"{l['antiguedad_dias']}d"
-        buscar = f"{l['cod_articulo']} {l['articulo']} {l['lote']}".lower()
+        usuario = str(l.get("usuario") or "").strip()
+        buscar = f"{l['cod_articulo']} {l['articulo']} {l['lote']} {usuario}".lower()
         tr += (
             f'<tr data-ubic="{html.escape(str(l["ubicacion"]))}" data-buscar="{html.escape(buscar)}" '
             f'data-cajas="{l["cajas"]}" data-dias="{l["antiguedad_dias"] if l["antiguedad_dias"] is not None else -1}">'
@@ -108,16 +117,17 @@ def generar_dashboard(salida: Path) -> Path:
             f'<td class="mono">{html.escape(str(l["cod_articulo"] or ""))}</td>'
             f'<td>{html.escape(str(l["articulo"] or ""))}</td>'
             f'<td class="mono">{html.escape(str(l["lote"] or ""))}</td>'
+            f'<td class="mono">{html.escape(usuario or "-")}</td>'
             f'<td class="c b">{l["cajas"]}</td>'
             f'<td class="c">{html.escape(str(l["fecha_mas_antigua"] or "-"))}</td>'
             f'<td class="c"><span class="chip" style="background:{color}">{dias_txt}</span></td></tr>'
         )
 
-    excel_uri, ncols = _excel_datauri(crudas)
-    excel_name = f"saldo_login_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+    excel_uri, nfilas = _excel_datauri(lineas)
+    excel_name = f"login_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
     excel_btn = (
         f'<a class="btnxls" download="{excel_name}" href="{excel_uri}">⬇ Descargar Excel '
-        f'(data completa: {len(crudas)} filas · {ncols} columnas)</a>'
+        f'({nfilas} líneas)</a>'
     ) if excel_uri else '<span class="muted">Sin datos para exportar</span>'
 
     tpl = _PLANTILLA
@@ -162,7 +172,7 @@ _PLANTILLA = """<!doctype html><html lang=es><head><meta charset=utf-8>
  .search{font-size:12px;padding:6px 10px;border:1px solid #cfd6dd;border-radius:8px;width:170px}
  .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
  table{width:100%;border-collapse:collapse;font-size:13px}
- .tablewrap table{min-width:760px}
+ .tablewrap table{min-width:880px}
  thead th{background:#1f3a5f;color:#fff;text-align:left;padding:10px;font-size:11px;text-transform:uppercase;white-space:nowrap;cursor:pointer;user-select:none}
  thead th .ar{font-size:8px;opacity:.5;margin-left:3px}
  td{padding:9px 10px;border-bottom:1px solid #eef0f2}
@@ -208,6 +218,7 @@ _PLANTILLA = """<!doctype html><html lang=es><head><meta charset=utf-8>
      <th data-k=cod data-t=s>Cód. Artículo<span class=ar>&#9650;&#9660;</span></th>
      <th data-k=art data-t=s>Artículo<span class=ar>&#9650;&#9660;</span></th>
      <th data-k=lote data-t=s>Lote Proveedor<span class=ar>&#9650;&#9660;</span></th>
+     <th data-k=usuario data-t=s>Usuario<span class=ar>&#9650;&#9660;</span></th>
      <th class=c data-k=cajas data-t=n>Cantidad<span class=ar>&#9650;&#9660;</span></th>
      <th class=c data-k=fecha data-t=s>Fecha Últ. Mov.<span class=ar>&#9650;&#9660;</span></th>
      <th class=c data-k=dias data-t=n>Días<span class=ar>&#9650;&#9660;</span></th>
@@ -229,7 +240,7 @@ _PLANTILLA = """<!doctype html><html lang=es><head><meta charset=utf-8>
 <script>
  var tbody=document.querySelector('#tabla tbody');
  var filasAll=Array.prototype.slice.call(tbody.querySelectorAll('tr'));
- var idx={ubic:0,cod:1,art:2,lote:3,cajas:4,fecha:5,dias:6};
+ var idx={ubic:0,cod:1,art:2,lote:3,usuario:4,cajas:5,fecha:6,dias:7};
  var st={col:null,dir:1,page:1,per:10,auto:true,q:''};
 
  // Calcula cuantas filas caben en la altura visible del monitor.
