@@ -57,7 +57,12 @@ es la de la nube (sin BD, snapshot puro). El dashboard NO necesita BD.
   Artículo, Lote, Usuario, Cantidad, Fecha Últ. Mov., Días) con filtro por
   ubicación, buscador, orden y paginación con filas "Auto" (se ajustan a la
   altura de pantalla); botón Descargar Excel que exporta SOLO esas columnas
-  mostradas (las líneas), no la data cruda (.xlsx embebido en base64).
+  mostradas (las líneas), no la data cruda (.xlsx embebido en base64). Tiene un
+  sidebar (nav.sidebar) con 2 vistas: Dashboard y Configuración (#view-dashboard
+  / #view-config, toggle por JS). Config → "Credenciales DINET": 2 enlaces a
+  GitHub (editar secret DINET_PASS + Run workflow) para reactivar cuando la clave
+  caduque, sin terminal (plan B simple, sin backend; el "un clic" real sería un
+  Cloudflare Worker, pendiente).
 
 ## GOTCHAS críticos (no re-tropezar)
 

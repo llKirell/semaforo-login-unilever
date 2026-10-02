@@ -151,7 +151,21 @@ _PLANTILLA = """<!doctype html><html lang=es><head><meta charset=utf-8>
 <style>
  *{box-sizing:border-box;margin:0}
  /* zoom 0.8 = vista tipo 80% (mas compacta, entra mas en pantalla) */
- body{background:#eef1f4;font-family:'Segoe UI',Arial,sans-serif;color:#1b1b1b;zoom:.8}
+ body{background:#eef1f4;font-family:'Segoe UI',Arial,sans-serif;color:#1b1b1b;zoom:.8;display:flex;min-height:100vh}
+ .sidebar{width:54px;background:#141b2d;display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:6px;flex:none}
+ .sblogo{font-size:22px;margin-bottom:10px}
+ .sbtn{width:40px;height:40px;border:none;border-radius:10px;background:transparent;color:#9aa7bd;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+ .sbtn:hover{background:#1f2a40;color:#fff}
+ .sbtn.active{background:rgba(74,163,255,.18);color:#4aa3ff}
+ .main{flex:1;min-width:0}
+ .cfgbody{padding:18px 20px;font-size:14px;line-height:1.5}
+ .step{display:flex;gap:12px;margin:14px 0;align-items:flex-start}
+ .stepn{flex:none;width:26px;height:26px;border-radius:50%;background:#1f3a5f;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px}
+ .btncfg{display:inline-block;margin-top:8px;background:#1f6feb;color:#fff;text-decoration:none;padding:9px 16px;border-radius:8px;font-weight:600;font-size:13px}
+ .btncfg:hover{background:#1559c9}
+ .btncfg.alt{background:#1d6f42}
+ .btncfg.alt:hover{background:#175a36}
+ code{background:#eef1f4;padding:1px 5px;border-radius:4px;font-size:12px;color:#c0398f}
  .wrap{max-width:100%;margin:0;padding:20px 26px 40px}
  h1{font-size:22px} .sub{color:#777;font-size:13px;margin:2px 0 18px}
  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
@@ -200,7 +214,14 @@ _PLANTILLA = """<!doctype html><html lang=es><head><meta charset=utf-8>
    .pager{flex-wrap:wrap;justify-content:center}
    .btnxls{text-align:center}
  }
-</style></head><body><div class=wrap>
+</style></head><body>
+<nav class=sidebar>
+  <div class=sblogo>🚦</div>
+  <button class="sbtn active" data-view=dashboard title="Dashboard">📊</button>
+  <button class=sbtn data-view=config title="Configuración">⚙️</button>
+</nav>
+<div class=main>
+<div class=wrap id=view-dashboard>
  <h1>🚦 Semáforo Login — UNILEVER</h1>
  <div class=sub>Actualizado: @@ACTUALIZADO@@ · Centro HUACHIPA</div>
  <div class=kpis>@@KPIS@@</div>
@@ -236,6 +257,28 @@ _PLANTILLA = """<!doctype html><html lang=es><head><meta charset=utf-8>
      <div class=fr>@@EXCEL@@</div>
    </div>
  </div>
+</div>
+<div class=wrap id=view-config style="display:none">
+ <h1>⚙️ Configuración</h1>
+ <div class=sub>Opciones del sistema — Semáforo Login</div>
+ <div class=panel style="max-width:760px">
+   <div class=ptop><h2>🔑 Credenciales DINET</h2></div>
+   <div class=cfgbody>
+     <p>Cuando la contraseña de DINET <b>cambie o caduque</b>, el dashboard deja de actualizarse. Para reactivarlo, sigue estos 2 pasos:</p>
+     <div class=step><div class=stepn>1</div><div>
+       <b>Cambiar la contraseña</b><br>
+       <span class=muted>Abre los Secrets de GitHub y edita <code>DINET_PASS</code> (y <code>DINET_USER</code> si también cambió). Pega el valor nuevo y presiona <b>Update secret</b>.</span><br>
+       <a class=btncfg href="https://github.com/llKirell/semaforo-login-unilever/settings/secrets/actions" target=_blank rel=noopener>✏️ Cambiar contraseña (GitHub Secrets)</a>
+     </div></div>
+     <div class=step><div class=stepn>2</div><div>
+       <b>Re-ejecutar ahora</b><br>
+       <span class=muted>Dispara el proceso para que tome la clave nueva: botón <b>“Run workflow”</b>.</span><br>
+       <a class="btncfg alt" href="https://github.com/llKirell/semaforo-login-unilever/actions/workflows/actualizar.yml" target=_blank rel=noopener>▶️ Re-ejecutar ahora (GitHub Actions)</a>
+     </div></div>
+     <p class=muted style="margin-top:14px">En ~2 minutos el dashboard vuelve a actualizarse. 🔒 Solo tú (dueño del repo, con tu sesión de GitHub) puedes hacer estos cambios.</p>
+   </div>
+ </div>
+</div>
 </div>
 <script>
  var tbody=document.querySelector('#tabla tbody');
@@ -308,10 +351,23 @@ _PLANTILLA = """<!doctype html><html lang=es><head><meta charset=utf-8>
    if(v==='auto'){st.auto=true;}else{st.auto=false;st.per=+v;}
    st.page=1;render();
  });
- var rz; window.addEventListener('resize',function(){ if(st.auto){ clearTimeout(rz); rz=setTimeout(render,150); } });
+ var rz; window.addEventListener('resize',function(){ if(st.auto && document.getElementById('view-dashboard').style.display!=='none'){ clearTimeout(rz); rz=setTimeout(render,150); } });
  document.querySelectorAll('thead th').forEach(function(th){th.addEventListener('click',function(){
    var k=th.dataset.k; if(st.col===k){st.dir=-st.dir;}else{st.col=k;st.dir=1;} st.page=1; render();
  });});
  render();
+
+ // --- Sidebar: cambiar entre Dashboard y Configuracion ---
+ (function(){
+   var vDash=document.getElementById('view-dashboard'), vCfg=document.getElementById('view-config');
+   document.querySelectorAll('.sbtn').forEach(function(btn){
+     btn.addEventListener('click',function(){
+       document.querySelectorAll('.sbtn').forEach(function(b){b.classList.remove('active');});
+       btn.classList.add('active');
+       if(btn.dataset.view==='config'){ vDash.style.display='none'; vCfg.style.display=''; }
+       else { vCfg.style.display='none'; vDash.style.display=''; render(); }
+     });
+   });
+ })();
 </script>
 </body></html>"""
