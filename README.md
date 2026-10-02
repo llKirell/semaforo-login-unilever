@@ -27,8 +27,8 @@ vía `gh workflow run`) como **puente**, hasta que el cron nativo de GitHub
 (`schedule` en el workflow) enganche solo. Ver más abajo.
 
 **Reglas de negocio clave:**
-- Ubicaciones monitoreadas: se definen en `config/ubicaciones.py` (hoy `LOGIN`,
-  `LOGI.RECEP`, `LOGI.ALMACEN`). Editable sin tocar la lógica.
+- Ubicaciones monitoreadas: se definen en `config/ubicaciones.py` (lista
+  editable: LOGIN, LOGI.*, varias X1.* y LOGIN.RC.*). Editable sin tocar la lógica.
 - Antigüedad = días desde la fila más antigua de `FechaUltimoMovimiento`.
 - Semáforo: 0-2 días = 🟢 | 3 = 🟡 | 4+ = 🔴 | sin fecha = OBSERVACIÓN.
 - **Líneas** = combinaciones únicas Ubicación+Artículo+Lote. **Cajas** = suma de
