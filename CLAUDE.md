@@ -48,8 +48,8 @@ es la de la nube (sin BD, snapshot puro). El dashboard NO necesita BD.
 ## Reglas de negocio
 
 - Ubicaciones monitoreadas: `config/ubicaciones.py` → `UBICACIONES_MONITOREADAS`
-  + `MODO_COINCIDENCIA` ("exacto" o "prefijo"). Lista editable (incluye LOGIN,
-  LOGI.*, varias X1.* y LOGIN.RC.*) — ver el archivo para la lista vigente.
+  + `MODO_COINCIDENCIA` ("exacto" o "prefijo"). Lista editable — ver el archivo
+  para la lista vigente (al 2026-10-14: LOGIN, LOGI.ALMACEN/RECEP, LOGI.JAULA01-10).
 - Semáforo (`clasificar_semaforo` en src/processor/login.py): 0-2 días=VERDE,
   3=AMARILLO, 4+=ROJO, sin fecha=OBSERVACION.
 - Dashboard: 3 tarjetas (ROJO/AMARILLO/VERDE) con cajas+líneas+día más antiguo de

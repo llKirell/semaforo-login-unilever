@@ -14,18 +14,20 @@ LISTA EDITABLE de ubicaciones a monitorear.
 
 # Ubicaciones EXACTAS que el sistema considera "pendientes LOGIN".
 UBICACIONES_MONITOREADAS = [
-    # --- Originales ---
-    "LOGIN",
-    "LOGI.RECEP",
+    # --- Lista vigente (2026-10-14) ---
+    "LOGI.JAULA01",
+    "LOGI.JAULA02",
+    "LOGI.JAULA03",
+    "LOGI.JAULA04",
+    "LOGI.JAULA05",
+    "LOGI.JAULA06",
+    "LOGI.JAULA07",
+    "LOGI.JAULA08",
+    "LOGI.JAULA09",
+    "LOGI.JAULA10",
     "LOGI.ALMACEN",
-    # --- Agregadas 2026-10-02 ---
-    "LOGIN.RC.06",
-    "LOGIN.RC.102",
-    "X1.IN.14",
-    "X1.IN.17",
-    "X1.IN.18",
-    "X1.IN.63",
-    "X1.FOODS.01",
+    "LOGI.RECEP",
+    "LOGIN",
     # "LOGI.DEVOL",   # <- ejemplo: agrega nuevas ubicaciones aqui
 ]
 
